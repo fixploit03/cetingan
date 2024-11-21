@@ -20,9 +20,10 @@ def receive_messages():
 
 def send_messages():
     while True:
-        message = input("")
+        message = input("Masukkan pesan: ")
         full_message = f"{USERNAME}: {message}"
         sock.sendto(full_message.encode("utf-8"), (BROADCAST_IP, PORT))
 
 threading.Thread(target=receive_messages, daemon=True).start()
 send_messages()
+        
